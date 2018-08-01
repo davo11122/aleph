@@ -8,7 +8,7 @@ from aleph.model import Document, DocumentRecord
 from aleph.logic.documents import update_document, delete_document
 from aleph.logic.collections import update_collection
 from aleph.logic.util import document_url
-from aleph.logic.user_activity import record_user_activity
+from aleph.logic.audit import record_audit
 from aleph.views.cache import enable_cache
 from aleph.views.util import get_db_document, get_index_document
 from aleph.views.util import jsonify, parse_request, sanitize_html
@@ -51,8 +51,8 @@ def view(document_id):
         data['text'] = document.body_text
     if Document.SCHEMA_IMAGE in document.model.names:
         data['text'] = document.body_text
-    record_user_activity.delay(
-        "USER.VIEW_DOCUMENT", {"document_id": document_id}, request.authz.id
+    record_audit.delay(
+        "USER.VIEW_DOCUMENT", {"document_id": str(document_id)}, request.authz
     )
     return jsonify(data, schema=CombinedSchema)
 
@@ -101,6 +101,9 @@ def _serve_archive(content_hash, file_name, mime_type):
 @blueprint.route('/api/2/documents/<int:document_id>/file')
 def file(document_id):
     document = get_db_document(document_id)
+    record_audit.delay(
+        "USER.VIEW_DOCUMENT", {"document_id": str(document_id)}, request.authz
+    )
     resp = _serve_archive(document.content_hash,
                           document.safe_file_name,
                           document.mime_type)
@@ -110,6 +113,9 @@ def file(document_id):
 @blueprint.route('/api/2/documents/<int:document_id>/pdf')
 def pdf(document_id):
     document = get_db_document(document_id)
+    record_audit.delay(
+        "USER.VIEW_DOCUMENT", {"document_id": str(document_id)}, request.authz
+    )
     if not document.supports_pages:
         raise BadRequest("PDF is only available for text documents")
     file_name = document.safe_file_name
@@ -123,6 +129,9 @@ def pdf(document_id):
 def records(document_id):
     enable_cache()
     document = get_db_document(document_id)
+    record_audit.delay(
+        "USER.VIEW_DOCUMENT", {"document_id": str(document_id)}, request.authz
+    )
     if not document.supports_records:
         raise BadRequest("This document does not have records.")
     result = RecordsQuery.handle(request,
@@ -135,6 +144,9 @@ def records(document_id):
 def record(document_id, index):
     enable_cache()
     document = get_db_document(document_id)
+    record_audit.delay(
+        "USER.VIEW_DOCUMENT", {"document_id": str(document_id)}, request.authz
+    )
     if not document.supports_records:
         raise BadRequest("This document does not have records.")
     record = DocumentRecord.by_index(document.id, index)
