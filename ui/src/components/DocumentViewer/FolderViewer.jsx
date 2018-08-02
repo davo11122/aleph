@@ -10,7 +10,7 @@ import './FolderViewer.css';
 
 class FolderViewer extends Component {
   render() {
-    const { document, query, className, disableOrEnableDelete, setDocuments, setRefreshCallout } = this.props;
+    const { document, query, className, disableOrEnableDelete, setDocuments, setRefreshCallout, previewMode } = this.props;
 
     return (
       <React.Fragment>
@@ -31,7 +31,7 @@ class FolderViewer extends Component {
             query={query}
             hideCollection={true}
             documentMode={true}
-            writable={document.writeable}
+            writable={document.writeable && !previewMode}
             disableOrEnableDelete={disableOrEnableDelete}
             setDocuments={setDocuments}
             setRefreshCallout={setRefreshCallout}

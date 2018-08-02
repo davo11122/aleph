@@ -84,7 +84,8 @@ class DocumentViewer extends React.Component {
         hasWarning={doc.status === 'fail'}
         disableOrEnableDelete={this.disableOrEnableDelete}
         setDocuments={this.setDocuments}
-        setRefreshCallout={this.setRefreshCallout}/>;
+        setRefreshCallout={this.setRefreshCallout}
+        previewMode={previewMode}/>;
     } else if (doc.schema === 'Document' || doc.schema === 'Audio' || doc.schema === 'Video') {
       return <ErrorSection visual='issue'
                            title={intl.formatMessage(messages.no_viewer)}
@@ -110,7 +111,7 @@ class DocumentViewer extends React.Component {
         <Toolbar className={(previewMode === true) ? 'toolbar-preview' : null}>
           <ParentButton isPreview={previewMode} document={doc} />
           <ModeButtons isPreview={previewMode} document={doc} />
-          {doc.collection.writeable && <button
+          {doc.writeable && doc.schema === 'Folder' && !previewMode && <button
             type="button"
             className="pt-button pt-icon-delete"
             disabled={isDeleteDisabled}
